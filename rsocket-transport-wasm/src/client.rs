@@ -7,7 +7,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
-use web_sys::{ErrorEvent, FileReader, MessageEvent, ProgressEvent, WebSocket};
+use web_sys::{ErrorEvent, Event, FileReader, MessageEvent, ProgressEvent, WebSocket};
 
 macro_rules! console_log {
     ($($t:tt)*) => (log(&format_args!($($t)*).to_string()))
@@ -44,6 +44,12 @@ impl ClientTransport for WebsocketClientTransport {
             }) as Box<dyn FnMut(ErrorEvent)>);
             ws.set_onerror(Some(on_error.as_ref().unchecked_ref()));
             on_error.forget();
+
+            let on_close = Closure::wrap(Box::new(move |_e: Event| {
+                console_log!("websocket closed");
+            }) as Box<dyn FnMut(Event)>);
+            ws.set_onclose(Some(on_close.as_ref().unchecked_ref()));
+            on_close.forget();
 
             // on open
             let cloned_ws = ws.clone();
