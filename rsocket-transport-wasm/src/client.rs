@@ -1,4 +1,5 @@
 use bytes::BytesMut;
+use futures_channel::mpsc;
 use js_sys::{ArrayBuffer, Uint8Array};
 use rsocket_rust::frame::Frame;
 use rsocket_rust::transport::{BoxResult, ClientTransport, Rx, SafeFuture, Tx};
@@ -26,6 +27,7 @@ pub struct WebsocketClientTransport {
 impl ClientTransport for WebsocketClientTransport {
     fn attach(self, incoming: Tx<Frame>, mut sending: Rx<Frame>) -> SafeFuture<BoxResult<()>> {
         Box::pin(async move {
+            let (mut closer_tx, mut closer_rx) = mpsc::channel::<u8>(1);
             let sending = RefCell::new(sending);
             // Connect to an echo server
             let ws = WebSocket::new(&self.url).unwrap();
@@ -45,8 +47,10 @@ impl ClientTransport for WebsocketClientTransport {
             ws.set_onerror(Some(on_error.as_ref().unchecked_ref()));
             on_error.forget();
 
+            // on_close
             let on_close = Closure::wrap(Box::new(move |_e: Event| {
                 console_log!("websocket closed");
+                closer_tx.try_send(1).unwrap();
             }) as Box<dyn FnMut(Event)>);
             ws.set_onclose(Some(on_close.as_ref().unchecked_ref()));
             on_close.forget();
@@ -65,6 +69,9 @@ impl ClientTransport for WebsocketClientTransport {
             ws.set_onopen(Some(on_open.as_ref().unchecked_ref()));
             on_open.forget();
 
+            while let Err(e) = closer_rx.try_next() {
+                console_log!("*** closer error ***");
+            }
             console_log!("***** attch end *****");
 
             Ok(())
