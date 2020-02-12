@@ -39,8 +39,8 @@ impl ClientTransport for WebsocketClientTransport {
             on_message.forget();
 
             // on error
-            let on_error = Closure::wrap(Box::new(move |_e: ErrorEvent| {
-                // TODO: handle error
+            let on_error = Closure::wrap(Box::new(move |e: ErrorEvent| {
+                console_log!("websocket error: {}", e.message());
             }) as Box<dyn FnMut(ErrorEvent)>);
             ws.set_onerror(Some(on_error.as_ref().unchecked_ref()));
             on_error.forget();
