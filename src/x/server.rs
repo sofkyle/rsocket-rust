@@ -49,12 +49,12 @@ impl ServerBuilder {
         self
     }
 
-    pub async fn serve(self) -> Result<(), Box<dyn Error + Send + Sync>> {
+    pub async fn start(self) -> Result<(), Box<dyn Error + Send + Sync>> {
         // TODO: process error
-        let s = self.uri.unwrap();
-        match URI::parse(&s) {
+        let uri = self.uri.unwrap();
+        match URI::parse(&uri) {
             Ok(u) => match u {
-                URI::Tcp(addr) => Self::serve_tcp(addr, self.on_setup, self.start_handler).await,
+                URI::Tcp(addr) => Self::start_tcp(addr, self.on_setup, self.start_handler).await,
                 _ => unimplemented!(),
             },
             Err(e) => Err(e),
@@ -62,7 +62,7 @@ impl ServerBuilder {
     }
 
     #[inline]
-    async fn serve_tcp(
+    async fn start_tcp(
         addr: SocketAddr,
         on_setup: FnAcceptorWithSetup,
         on_start: Option<FnStart>,

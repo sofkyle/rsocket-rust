@@ -35,8 +35,12 @@ rand = "0.7.2"
 
 [[example]]
 name = "echo"
-path = "examples/echo/main.rs"
+path = "examples/echo.rs"
 
 [[example]]
 name = "proxy"
-path = "examples/proxy/main.rs"
+path = "examples/proxy.rs"
+
+[[example]]
+name = "client"
+path = "examples/client.rs"

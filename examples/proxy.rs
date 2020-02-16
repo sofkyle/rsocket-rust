@@ -1,7 +1,6 @@
-#[macro_use]
-extern crate log;
 extern crate env_logger;
 extern crate futures;
+extern crate log;
 extern crate rsocket_rust;
 extern crate tokio;
 
@@ -15,7 +14,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 
     RSocketFactory::receive()
         .acceptor(|setup, _sending_socket| {
-            info!("incoming socket: setup={:?}", setup);
+            println!("incoming socket: setup={:?}", setup);
             Ok(Box::new(block_on(async move {
                 RSocketFactory::connect()
                     .acceptor(|| Box::new(EchoRSocket))
